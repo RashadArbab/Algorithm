@@ -1,0 +1,56 @@
+<project name="TweetProgram" basedir="." default="main">
+
+    <property name="src.dir" value="code"/>
+    <property name="bin.dir"   value="bin"/>
+    
+    <property name="main-class" value="Program"/>
+    
+    <path id="classpath">
+        <pathelement location="commons-collections4-4.4.jar"/>
+        <pathelement location="commons-csv-1.8.jar"/>
+        <pathelement location="commons-lang3-3.11.jar"/>
+    </path>
+  
+    <target name="clean">
+        <delete dir="${bin.dir}"/>
+    </target>
+
+    <target name="compile" depends="clean">
+        <mkdir dir="${bin.dir}"/>
+        <javac includeantruntime="false"
+               destdir="${bin.dir}"
+               debug="on"
+        	   classpathref="classpath">
+            <src path="${src.dir}"/>
+        </javac>
+    </target>
+
+    <target name="run" depends="compile">
+        <java fork="true"
+              classname="${main-class}">
+			<classpath>
+			    <path refid="classpath"/>
+			    <pathelement location="${bin.dir}"/>
+			</classpath>
+        </java>
+    </target>
+    
+    <target name="debug" depends="compile">
+        <condition property="remoteDebugJvmArgs"
+                   value="-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5105"
+                   else="-ea">
+            <istrue value="${remoteDebug}"/>
+        </condition>
+        <java fork="true"
+              classname="${main-class}">
+            <classpath>
+                <path refid="classpath"/>
+                <pathelement location="${bin.dir}"/>
+            </classpath>
+            <jvmarg value="${remoteDebugJvmArgs}"/>
+        </java>
+    </target>
+    
+    <target name="main" depends="run"/>
+
+</project>

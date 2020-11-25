@@ -1,0 +1,17 @@
+{
+// Configure your Run and Preview buttons here.
+
+// Run button configuration
+  "commands": {
+      "Compile & Run" : "ant -emacs",
+      "Compile" : "ant compile"
+  },
+
+// Preview button configuration
+  "preview": {
+//        "Project Index (static)": "https://{{domain}}/{{index}}",
+//        "Current File (static)": "https://{{domain}}/{{filepath}}",
+//        "Box URL": "https://{{domain3000}}/"
+  },
+  "debugger": [{"type":"JAVA","command":"-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5105","before":"ant debug -DremoteDebug=true","uuid":"daaae828-36d0-c118-168d-12b7f7947c91","name":"Debug"}]
+}
