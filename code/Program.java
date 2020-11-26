@@ -44,7 +44,7 @@ public class Program {
 	 * when READ_INTO_MEMORAY is true
 	 */
 	// TODO: adjust this constant as necessary
-	private static final int MAX_TWEETS = 1000;
+	private static final int MAX_TWEETS = 5001;
 	//public static final int MAX_TWEETS = Integer.MAX_VALUE;
 
 	/**
@@ -136,7 +136,7 @@ public class Program {
 			numTweets++;
 			boolean addToList = true;
 
-			if (print10 <= 100) {
+			if(record.size() >= 8 ) {
 
 				String userName = record.get(8);
 				TweetCount tweet = new TweetCount(userName, 1);
@@ -178,7 +178,7 @@ public class Program {
 
 			}
 
-			print10++;
+			
 
 		}
 		
@@ -196,7 +196,7 @@ public class Program {
 		
 		double time = stopwatch.getElapsedSeconds(); 
 		
-		print(leaderBoard, "an" , "ArrayList" , time , n) ; 
+		print(leaderBoard, "an" , "ArrayList" , time , numTweets ,n ) ; 
 		
 		
 	}
@@ -212,9 +212,9 @@ public class Program {
 	 * @param n
 	 */
 	public static void print(PriorityQueue<TweetCount> leaderBoard, String prefix, 
-			String type, double time, int n) {
+			String type, double time, int numTweets ,int n) {
 
-		System.out.printf("To count %,d tweets with %s %s took %f seconds. \n", MAX_TWEETS*2 ,
+		System.out.printf("To count %,d tweets with %s %s took %f seconds. \n", numTweets ,
 				prefix ,  type , time); 
 		System.out.printf("The %d users by number of tweets are: \n" , n); 
 		Stack<TweetCount> stack = new Stack<TweetCount>() ; 
