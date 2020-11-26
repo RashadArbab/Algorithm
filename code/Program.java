@@ -1,5 +1,6 @@
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -7,6 +8,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Set;
 import java.util.Stack;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -45,7 +47,7 @@ public class Program {
 	 * when READ_INTO_MEMORAY is true
 	 */
 	// TODO: adjust this constant as necessary
-	private static final int MAX_TWEETS = 100000; 
+	private static final int MAX_TWEETS = Integer.MAX_VALUE; 
 	//public static final int MAX_TWEETS = Integer.MAX_VALUE;
 
 	/**
@@ -106,11 +108,11 @@ public class Program {
 
 		// TODO: you can comment/uncomment to test each map
 		// implementation.
-		findTopUsingArrayList(allTweets, 20);
+		//findTopUsingArrayList(allTweets, 20);
 		System.out.println("");
 		System.out.println("TreeMap"); 
 		System.out.println(""); 
-        findTopUsingTreeMap(allTweets, 20);
+        findTopUsingTreeMap(allTweets, 1500000);
 //        findTopUsingHashMap(allTweets, 20);
 	}
 
@@ -248,7 +250,8 @@ public class Program {
 		stopwatch.reset() ; 
 		stopwatch.start(); 
 		TreeMap<String, TweetCount> map = new TreeMap<String, TweetCount>() ;
-		PriorityQueue<TweetCount> pQueue = new PriorityQueue<TweetCount>() ; 
+		//PriorityQueue<TweetCount> pQueue = new PriorityQueue<TweetCount>() ; 
+		
 		int numTweets = 0; 
 		for (CSVRecord  record : allTweets) {
 			if (record.isSet(8)) {
@@ -257,19 +260,21 @@ public class Program {
 				if (map.isEmpty()) {
 					TweetCount tweet = new TweetCount(userName , 1); 
 					map.put(userName, tweet);
-					pQueue.add(tweet); 
+					
+					//pQueue.add(tweet); 
 				}
 				else {
 					TweetCount check = map.get(userName); 
 					if (check == null) {
 						TweetCount tweet = new TweetCount(userName, 1);
 						map.put(userName, tweet); 
-						pQueue.add(tweet);
+						//leaderBoard.put(tweet.getCount(), tweet);
+						//pQueue.add(tweet); 
 					}
 					else {
-						pQueue.remove(check); 
+						//pQueue.remove(check); 
 						check.increment();
-						pQueue.add(check); 
+						//pQueue.add(check); 
 					}
 				}
 				
@@ -278,14 +283,59 @@ public class Program {
 				numTweets++ ; 
 			}
 			
-			if (pQueue.size() > n) {
-				pQueue.remove(); 
+			//if (pQueue.size() > n) {
+				//pQueue.remove(); 
+			//}
+		}
+		
+		/**
+		 * this will create a cascading tree so if the leaderboard tree 
+		 * already has a value then it will create a tree within a tree that will take more users in it then you can have 
+		 * infinite users with the same value 
+		 */
+		System.out.println("Second way of printing"); 
+		TreeMap<Integer, TreeMap<String, TweetCount>> leaderBoard = new TreeMap<Integer, TreeMap<String , TweetCount>>() ; 
+		Collection<TweetCount> keys = map.values(); 
+		for (TweetCount key : keys) {
+			int value = key.getCount() ;
+			//System.out.println(value); 
+			if (!leaderBoard.containsKey(key.getCount())) {
+				TreeMap<String, TweetCount> tree = new TreeMap<String, TweetCount>() ; 
+				tree.put(key.getScreenName(), key); 
+				leaderBoard.put(key.getCount(), tree); 
+				//System.out.println("CheckPoint-2"); 
+			}
+			else {
+				//System.out.println("CheckPoint -1"); 
+				leaderBoard.get(key.getCount()).put(key.getScreenName() , key); 
 			}
 		}
+		System.out.println("Checkpoint 0"); 
+		int counter = 0; 
+		Collection<TreeMap<String, TweetCount>> topUsers = leaderBoard.descendingMap().values();  
+		for(TreeMap<String , TweetCount> key : topUsers) {
+			Collection<TweetCount> users = key.values() ; 
+ 			//System.out.println("CheckPoint 1"); 
+			for (TweetCount user : users) {
+				System.out.println(counter + ": " + user.getScreenName() + " tweeted " + user.getCount() + " times");
+				counter++; 
+				if (counter >= n) {
+					break; 
+				}
+			}
+			
+			if (counter >= n ) {
+				break; 
+			}
+			
+		}
+		
+	
+		
 		stopwatch.stop() ; 
 		double time = stopwatch.getElapsedSeconds(); 
-		print(pQueue , "a" , "treeMap" , time, numTweets, n); 
-		
+		//print(pQueue , "a" , "treeMap" , time, numTweets, n); 
+		System.out.println(time); 
 	}
 
 	/**
