@@ -7,7 +7,7 @@ import java.util.Objects;
  * @author Mark Hancock
  *
  */
-public class TweetCount {
+public class TweetCount implements Comparable<TweetCount> {
 
     /**
      * The screen name of the Twitter user.
@@ -81,6 +81,17 @@ public class TweetCount {
         // field comparison (only check degree for equality)
         return Objects.equals(screenName, count.screenName);
     }
+    
+    /**
+     * 
+     * @param other
+     * @return negative if the other has more tweets, 0 if equal, positive if this has more
+     */
+    @Override 
+    public int compareTo(TweetCount other) {
+		return this.getCount() - other.getCount() ; 
+		
+	}
 
     /**
      * Ensures that using a HashMap or HashSet on TweetCount

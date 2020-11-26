@@ -21,3 +21,4 @@
 /data/
 
 !commons-*.jar
+/bin/
