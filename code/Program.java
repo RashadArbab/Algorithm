@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Stack;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -44,7 +45,7 @@ public class Program {
 	 * when READ_INTO_MEMORAY is true
 	 */
 	// TODO: adjust this constant as necessary
-	private static final int MAX_TWEETS = 5001;
+	private static final int MAX_TWEETS = 100000; 
 	//public static final int MAX_TWEETS = Integer.MAX_VALUE;
 
 	/**
@@ -106,7 +107,10 @@ public class Program {
 		// TODO: you can comment/uncomment to test each map
 		// implementation.
 		findTopUsingArrayList(allTweets, 20);
-//        findTopUsingTreeMap(allTweets, 20);
+		System.out.println("");
+		System.out.println("TreeMap"); 
+		System.out.println(""); 
+        findTopUsingTreeMap(allTweets, 20);
 //        findTopUsingHashMap(allTweets, 20);
 	}
 
@@ -128,16 +132,16 @@ public class Program {
 		//Stopwatch stopwatch = new Stopwatch(); 
 		stopwatch.start() ; 
 		int numTweets = 0;
-		int print10 = 0;
+		
 		ArrayList<TweetCount> listOfTweets = new ArrayList<TweetCount>();
 		
 		PriorityQueue<TweetCount> leaderBoard = new PriorityQueue<TweetCount>(n); 
 		for (CSVRecord record : allTweets) {
-			numTweets++;
+			
 			boolean addToList = true;
 
-			if(record.size() >= 8 ) {
-
+			if(record.isSet(8)) {
+				numTweets++;
 				String userName = record.get(8);
 				TweetCount tweet = new TweetCount(userName, 1);
 				// boolean done = false;
@@ -241,6 +245,47 @@ public class Program {
 	 * @param n         the number of users to report the top N for
 	 */
 	public static void findTopUsingTreeMap(Iterable<CSVRecord> allTweets, int n) {
+		stopwatch.reset() ; 
+		stopwatch.start(); 
+		TreeMap<String, TweetCount> map = new TreeMap<String, TweetCount>() ;
+		PriorityQueue<TweetCount> pQueue = new PriorityQueue<TweetCount>() ; 
+		int numTweets = 0; 
+		for (CSVRecord  record : allTweets) {
+			if (record.isSet(8)) {
+				String userName = record.get(8); 
+				
+				if (map.isEmpty()) {
+					TweetCount tweet = new TweetCount(userName , 1); 
+					map.put(userName, tweet);
+					pQueue.add(tweet); 
+				}
+				else {
+					TweetCount check = map.get(userName); 
+					if (check == null) {
+						TweetCount tweet = new TweetCount(userName, 1);
+						map.put(userName, tweet); 
+						pQueue.add(tweet);
+					}
+					else {
+						pQueue.remove(check); 
+						check.increment();
+						pQueue.add(check); 
+					}
+				}
+				
+				
+				
+				numTweets++ ; 
+			}
+			
+			if (pQueue.size() > n) {
+				pQueue.remove(); 
+			}
+		}
+		stopwatch.stop() ; 
+		double time = stopwatch.getElapsedSeconds(); 
+		print(pQueue , "a" , "treeMap" , time, numTweets, n); 
+		
 	}
 
 	/**
