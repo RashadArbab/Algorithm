@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Stack;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -34,7 +35,7 @@ public class Program {
 	 * in the assignment.
 	 */
 	// TODO: adjust this constant as necessary
-	public static final boolean SHOW_HEADERS = true;
+	public static final boolean SHOW_HEADERS = false;
 
 	/**
 	 * When testing, you may want to choose a smaller portion of the dataset. This
@@ -43,8 +44,8 @@ public class Program {
 	 * when READ_INTO_MEMORAY is true
 	 */
 	// TODO: adjust this constant as necessary
-	// private static final int MAX_TWEETS = 50000;
-	public static final int MAX_TWEETS = Integer.MAX_VALUE;
+	private static final int MAX_TWEETS = 1000;
+	//public static final int MAX_TWEETS = Integer.MAX_VALUE;
 
 	/**
 	 * This constant represents the folder that contains the data. You should not
@@ -124,13 +125,13 @@ public class Program {
 		// After this loop has run, there is no more access to all
 		// the tweet records (e.g., you can't have a second for loop
 		// on allTweets), so you'll NEED to modify this code.
-		Stopwatch stopwatch = new Stopwatch(); 
+		//Stopwatch stopwatch = new Stopwatch(); 
 		stopwatch.start() ; 
 		int numTweets = 0;
 		int print10 = 0;
 		ArrayList<TweetCount> listOfTweets = new ArrayList<TweetCount>();
 		
-		PriorityQueue<TweetCount> leaderBoard = new PriorityQueue<TweetCount>(20); 
+		PriorityQueue<TweetCount> leaderBoard = new PriorityQueue<TweetCount>(n); 
 		for (CSVRecord record : allTweets) {
 			numTweets++;
 			boolean addToList = true;
@@ -171,7 +172,7 @@ public class Program {
 
 				}
 				
-				if (leaderBoard.size() > 20) { 
+				if (leaderBoard.size() > n) { 
 					leaderBoard.remove();
 				}
 
@@ -189,158 +190,48 @@ public class Program {
 		
 		//printArrayList(leaderBoards); 
 		
-		int size = leaderBoard.size(); 
-		for(int i= 0; i < size ; i ++) {
-			TweetCount currentTweet = leaderBoard.poll(); 
-			System.out.println("ScreenName: " + currentTweet.getScreenName() + "   Count: " 
-			+ currentTweet.getCount() + "    size: " + leaderBoard.size()); 
-		}
+		
 		
 		stopwatch.stop(); 
 		
 		double time = stopwatch.getElapsedSeconds(); 
 		
-		System.out.println("Time taken: " + time) ; 
-		System.out.printf("There are %,d tweets in total.\n", numTweets);
+		print(leaderBoard, "an" , "ArrayList" , time , n) ; 
+		
+		
 	}
-	
 	
 	/**
-	 * takes current leader board and new user checks if worthy of joining or not
-	 * This function gives me an error of java.util.ConcurrentModificationException
-	 * which from what i understood meant that you can't change an ArrayList on the
-	 * same thread that you are using to iterate over it. otherwise i would have
-	 * used this method
-	 * 
-	 * @param list
-	 * @param tweet
-	 * @return modified leader board
+	 * takes a priority queue and some parameters for printing the output 
+	 * then puts the queue into a stack to print it in reverse
+	 * then prints the stack 
+	 * @param leaderBoard 
+	 * @param prefix 
+	 * @param type
+	 * @param time
+	 * @param n
 	 */
-	public static ArrayList<TweetCount> leaderBoard(ArrayList<TweetCount> list, TweetCount tweet) {
-		// Check for already being on leaderBoard
-		boolean alreadyOn = false;
-		for (TweetCount user : list) {
-			if (tweet.getScreenName().equals(user.getScreenName())) {
-				alreadyOn = true;
-			}
-		}
-		if (alreadyOn == false) {
-			if (list.size() < 20) {
-				list.add(tweet);
-			} else {
-				int counter = 0;
-				int index = 0;
-				boolean insert = false;
-				for (TweetCount users : list) {
-					if (users.getCount() <= tweet.getCount()) {
-						index = counter;
-						insert = true;
-						break;
-					}
-					counter++;
-				}
-				if (insert == true) {
-					list.add(index, tweet);
+	public static void print(PriorityQueue<TweetCount> leaderBoard, String prefix, 
+			String type, double time, int n) {
+
+		System.out.printf("To count %,d tweets with %s %s took %f seconds. \n", MAX_TWEETS*2 ,
+				prefix ,  type , time); 
+		System.out.printf("The %d users by number of tweets are: \n" , n); 
+		Stack<TweetCount> stack = new Stack<TweetCount>() ; 
+		int size = leaderBoard.size(); 
 		
-
-					list.remove(20);
-					
-				}
-
-			}
-
+		for(int i= 0; i < size ; i ++) {
+			stack.push(leaderBoard.poll()); 
 		}
-		return list;
-
-	}
-
-	public static void printArrayList(ArrayList<TweetCount> list) {
-		for (TweetCount tweet : list) {
-			System.out.println(tweet.getScreenName() + "     " + tweet.getCount());
+		for (int i = 0; i < size ; i ++) {
+			System.out.printf("%s had %,d tweets \n", 
+					stack.peek().getScreenName() , stack.peek().getCount()); 
+			stack.pop(); 
 		}
-
-	}
-
-	/**
-	 * This algorithm was too good to pass up it runs a selection sort in half the
-	 * time now that is the kind of algorithm that gets the big $
-	 * 
-	 * @param list
-	 * @return
-	 */
-	public static ArrayList<TweetCount> doubleSelectionSortList(ArrayList<TweetCount> list) {
-
-		/*
-		 * if (unsorted == null || unsorted.length == 0){ throw new
-		 * IllegalArgumentException("Array is null or empty");
-		 * 
-		 * 
-		 * }
-		 */
-
-		for (int i = 0; i < ((list.size()) + 1) / 2; i++) {
-			int small = list.get(i).getCount();
-			int indexOfSmall = i;
-			int big = list.get(i).getCount();
-			int indexOfBig = i;
-
-			for (int j = i; j < list.size() - i; j++) {
-
-				if (list.get(j).getCount() < small) {
-					small = list.get(j).getCount();
-					indexOfSmall = j;
-
-				}
-
-				if (list.get(j).getCount() > big) {
-					big = list.get(j).getCount();
-					indexOfBig = j;
-					
-				}
-
-			}
-
-			if (list.get(i).getCount() != list.get(indexOfBig).getCount()) {
-				
-				list = swapAL(list, i, indexOfBig);
-				if (i == indexOfSmall) {
-					indexOfSmall = indexOfBig;
-				}
-			}
-			int second = list.size() - (i + 1);
-			if (list.get(second).getCount() != list.get(indexOfSmall).getCount() && list.get(second).getCount() != small) {
-
-				
-				list = swapAL(list, list.size() - (i + 1), indexOfSmall);
-			}
-			// System.out.println("Run " + i + " :" + Arrays.toString(unsorted));
-
-		}
-
-		return list;
-
 	}
 	
-	public static ArrayList<TweetCount> swapAL(ArrayList<TweetCount> list , int a, int b){
-		/*
-		 int swapa = a[i]; 
-		 
-        
-        a[i] = a[j];
-        a[j] = swapa; 
-
-        return a; 
-        */
-		
-		TweetCount temp = list.get(a); 
-		
-		list.set(a, list.get(b)); 
-		list.set(b, temp); 
-		
-		return list; 
-        
-	}
-
+	
+	
 	/**
 	 * TODO: Add your code for tree maps here. You will do best to create many
 	 * methods to organize your work and experiments.
