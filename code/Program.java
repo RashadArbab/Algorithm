@@ -1,6 +1,7 @@
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -47,8 +48,7 @@ public class Program {
 	 * when READ_INTO_MEMORAY is true
 	 */
 	// TODO: adjust this constant as necessary
-	private static final int MAX_TWEETS = Integer.MAX_VALUE; 
-	//public static final int MAX_TWEETS = Integer.MAX_VALUE;
+	public static final int MAX_TWEETS = Integer.MAX_VALUE;
 
 	/**
 	 * This constant represents the folder that contains the data. You should not
@@ -61,7 +61,11 @@ public class Program {
 	 * time your code.
 	 */
 	public static Stopwatch stopwatch = new Stopwatch();
-
+	
+	public static Stopwatch timeTreeMap = new Stopwatch() ; 
+	public static Stopwatch timeHashMap = new Stopwatch() ; 
+	
+	public static int capacity = 0 ; 
 	/**
 	 * The main method of your program. The first half of this is written for you
 	 * (don't adjust this!). Where it says "Add your code here..." you should put
@@ -94,8 +98,9 @@ public class Program {
 
 		Iterable<CSVRecord> bidenTweets = readData(dir.resolve(BIDEN_TWEETS_FILENAME), "Biden tweets", READ_INTO_MEMORY,
 				SHOW_HEADERS);
-
-		Iterable<CSVRecord> allTweets = () -> new IteratorChain<>(trumpTweets.iterator(), bidenTweets.iterator());
+		
+			
+		Iterable<CSVRecord> allTweets = () -> new IteratorChain<>(trumpTweets.iterator(), bidenTweets.iterator() );
 
 		/*
 		 ************************ IMPORTANT *********************
@@ -105,15 +110,22 @@ public class Program {
 		 * them in any way.
 		 * 
 		 ********************************************************/
-
+		
 		// TODO: you can comment/uncomment to test each map
 		// implementation.
+	
+		
 		//findTopUsingArrayList(allTweets, 20);
 		System.out.println("");
 		System.out.println("TreeMap"); 
 		System.out.println(""); 
-        findTopUsingTreeMap(allTweets, 1500000);
-//        findTopUsingHashMap(allTweets, 20);
+        findTopUsingTreeMap(allTweets, 200000);
+        findTopUsingHashMap(allTweets, 400000);
+        
+        
+        System.out.println("Time TreeMap: " + timeTreeMap.getElapsedMilliseconds()); 
+        System.out.println("Time HashMap: " + timeHashMap.getElapsedMilliseconds());
+       
 	}
 
 	/**
@@ -136,74 +148,40 @@ public class Program {
 		int numTweets = 0;
 		
 		ArrayList<TweetCount> listOfTweets = new ArrayList<TweetCount>();
-		
-		PriorityQueue<TweetCount> leaderBoard = new PriorityQueue<TweetCount>(n); 
 		for (CSVRecord record : allTweets) {
-			
 			boolean addToList = true;
-
 			if(record.isSet(8)) {
 				numTweets++;
 				String userName = record.get(8);
 				TweetCount tweet = new TweetCount(userName, 1);
-				// boolean done = false;
 				if (listOfTweets.isEmpty()) {
 					listOfTweets.add(tweet);
-					leaderBoard.add(tweet); 
-					
-					//leaderBoards = leaderBoard(leaderBoards, tweet);
 				} else {
-
 					for (TweetCount tc : listOfTweets) {
 						if (tc.getScreenName().equals(userName)) {
-							
-							leaderBoard.remove(tc); 
 							tc.increment();
-							//leaderBoards = leaderBoard(leaderBoards, tc);
-							leaderBoard.add(tc); 
-							
 							addToList = false;
-							
-						
 							break;
 						}
 					}
-
 					if (addToList == true) {
-						listOfTweets.add(tweet);
-						//leaderBoards = leaderBoard(leaderBoards, tweet);
-						leaderBoard.add(tweet); 
-						
+						listOfTweets.add(tweet);	
 					}
-
-				}
-				
-				if (leaderBoard.size() > n) { 
-					leaderBoard.remove();
-				}
-
+				}		
 			}
-
-			
-
 		}
 		
-		// Outside the loop, dont print anything inside the loop
-		
-		
-		//leaderBoards = doubleSelectionSortList(leaderBoards);
-		
-		
-		//printArrayList(leaderBoards); 
+		Collection<TweetCount> tweets = listOfTweets ;
 		
 		
 		
-		stopwatch.stop(); 
+		PriorityQueue<TweetCount> pQ = pQueue(tweets , n); 		
 		
+		stopwatch.stop();
 		double time = stopwatch.getElapsedSeconds(); 
 		
-		print(leaderBoard, "an" , "ArrayList" , time , numTweets ,n ) ; 
-		
+		print (pQ , "an" , "ArrayList", time, numTweets , n) ; 
+	 
 		
 	}
 	
@@ -217,23 +195,25 @@ public class Program {
 	 * @param time
 	 * @param n
 	 */
-	public static void print(PriorityQueue<TweetCount> leaderBoard, String prefix, 
+	public static void print(PriorityQueue<TweetCount> pQ, String prefix, 
 			String type, double time, int numTweets ,int n) {
-
+	 
 		System.out.printf("To count %,d tweets with %s %s took %f seconds. \n", numTweets ,
 				prefix ,  type , time); 
 		System.out.printf("The %d users by number of tweets are: \n" , n); 
-		Stack<TweetCount> stack = new Stack<TweetCount>() ; 
-		int size = leaderBoard.size(); 
-		
-		for(int i= 0; i < size ; i ++) {
-			stack.push(leaderBoard.poll()); 
+	
+		for(int i = 0 ; i < n ; i ++ ) {
+			TweetCount temp = pQ.remove(); 
+			System.out.println(temp.getScreenName() + " had " + temp.getCount() + " tweets"); 
 		}
-		for (int i = 0; i < size ; i ++) {
-			System.out.printf("%s had %,d tweets \n", 
-					stack.peek().getScreenName() , stack.peek().getCount()); 
-			stack.pop(); 
+	}
+	
+	public static PriorityQueue<TweetCount> pQueue(Collection<TweetCount> col, int n) {
+		PriorityQueue<TweetCount> pQ = new PriorityQueue<>() ; 
+		for (TweetCount tweet : col) {
+			pQ.add(tweet); 
 		}
+		return pQ ; 
 	}
 	
 	
@@ -247,6 +227,9 @@ public class Program {
 	 * @param n         the number of users to report the top N for
 	 */
 	public static void findTopUsingTreeMap(Iterable<CSVRecord> allTweets, int n) {
+		
+		timeTreeMap.start() ; 
+		
 		stopwatch.reset() ; 
 		stopwatch.start(); 
 		TreeMap<String, TweetCount> map = new TreeMap<String, TweetCount>() ;
@@ -268,13 +251,10 @@ public class Program {
 					if (check == null) {
 						TweetCount tweet = new TweetCount(userName, 1);
 						map.put(userName, tweet); 
-						//leaderBoard.put(tweet.getCount(), tweet);
-						//pQueue.add(tweet); 
+						
 					}
 					else {
-						//pQueue.remove(check); 
 						check.increment();
-						//pQueue.add(check); 
 					}
 				}
 				
@@ -283,40 +263,67 @@ public class Program {
 				numTweets++ ; 
 			}
 			
-			//if (pQueue.size() > n) {
-				//pQueue.remove(); 
-			//}
 		}
+
+		 
+			/** 
+			 * Getting the top tweets using a priority queue 
+			 */
+			
+
+
+			
+		PriorityQueue<TweetCount> pQueue = pQueue(map.values() , n) ; 
+			
+			
+
+		double pQTime = stopwatch.getElapsedMilliseconds() ; 
+			
+		print(pQueue , "a" , "TreeMap" , pQTime , numTweets , n) ; 
+			
+		timeTreeMap.stop() ;
+
+
 		
 		/**
+		 * ******GETTING TOP USERS USING MY ALGORITHM*******
+		 * 
 		 * this will create a cascading tree so if the leaderboard tree 
 		 * already has a value then it will create a tree within a tree that will take more users in it then you can have 
 		 * infinite users with the same value 
 		 */
-		System.out.println("Second way of printing"); 
+		
+	
+		/*
+
+
 		TreeMap<Integer, TreeMap<String, TweetCount>> leaderBoard = new TreeMap<Integer, TreeMap<String , TweetCount>>() ; 
-		Collection<TweetCount> keys = map.values(); 
-		for (TweetCount key : keys) {
+		
+		for (TweetCount key : map.values()) {
 			int value = key.getCount() ;
-			//System.out.println(value); 
-			if (!leaderBoard.containsKey(key.getCount())) {
+			
+			if (!leaderBoard.containsKey(value)) {
 				TreeMap<String, TweetCount> tree = new TreeMap<String, TweetCount>() ; 
 				tree.put(key.getScreenName(), key); 
 				leaderBoard.put(key.getCount(), tree); 
-				//System.out.println("CheckPoint-2"); 
+				
 			}
 			else {
-				//System.out.println("CheckPoint -1"); 
+				
 				leaderBoard.get(key.getCount()).put(key.getScreenName() , key); 
 			}
 		}
-		System.out.println("Checkpoint 0"); 
+		
+ 
+		
+		
+		
 		int counter = 0; 
-		Collection<TreeMap<String, TweetCount>> topUsers = leaderBoard.descendingMap().values();  
-		for(TreeMap<String , TweetCount> key : topUsers) {
-			Collection<TweetCount> users = key.values() ; 
- 			//System.out.println("CheckPoint 1"); 
-			for (TweetCount user : users) {
+		
+		
+		for(TreeMap<String , TweetCount> key : leaderBoard.descendingMap().values()) {
+			
+			for (TweetCount user : key.values()) {
 				System.out.println(counter + ": " + user.getScreenName() + " tweeted " + user.getCount() + " times");
 				counter++; 
 				if (counter >= n) {
@@ -329,13 +336,11 @@ public class Program {
 			}
 			
 		}
-		
-	
-		
-		stopwatch.stop() ; 
-		double time = stopwatch.getElapsedSeconds(); 
 		//print(pQueue , "a" , "treeMap" , time, numTweets, n); 
-		System.out.println(time); 
+		
+		*/
+
+		
 	}
 
 	/**
@@ -347,8 +352,51 @@ public class Program {
 	 * @param n         the number of users to report the top N for
 	 */
 	public static void findTopUsingHashMap(Iterable<CSVRecord> allTweets, int n) {
+		/**
+		 * get name
+		 * if contains key (name) 
+		 * 
+		 *  Method1: 
+		 *  	increment 
+		 *  	remap to new value 
+		 * 
+		 * Method2: 
+		 * 		remap to new value; 
+		 * 		no need to increment; 
+		 * 
+		 * print key names and values; 
+		 * 
+		 */
+		
+		timeHashMap.start() ; 
+		
+		int numTweets = 0 ; 
+		HashMap<String , TweetCount> map = new HashMap<>() ; 
+		for (CSVRecord record : allTweets) {
+			if (record.isSet(8)) {
+				numTweets ++; 
+				String name = record.get(8); 
+				if (map.containsKey(name)) {
+					map.get(name).increment() ;   
+				}
+				else {
+					TweetCount tweet = new TweetCount (name , 1); 
+					map.put(name, tweet); 
+				}	
+			}
+		}
+		
+		PriorityQueue<TweetCount> pQ = pQueue(map.values() , n); 
+		stopwatch.stop(); 
+		double time = stopwatch.getElapsedMilliseconds() ; 
+		print (pQ , "a" ,  "HashMap"  , time , numTweets , n); 
+		
+		timeHashMap.stop() ; 
+		
+		
 	}
-
+	
+	
 	/**
 	 * YOU SHOULD NOT CHANGE THIS METHOD.
 	 * 
