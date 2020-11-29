@@ -146,40 +146,52 @@ public class Program {
 		//Stopwatch stopwatch = new Stopwatch(); 
 		stopwatch.start() ; 
 		int numTweets = 0;
-		
+		/**
+		 * here is the new arraylist and you add each record to the list
+		 * First check is to see that there is some data in the screen name field 
+		 * 
+		 * Options: 
+		 * 1: if the list is empty we add to the list 
+		 * 2: if the list is not empty
+		 * 		2a: check if the screen name is already in the list 
+		 * 		2b: if yes then increment else add to the list
+		 */
 		ArrayList<TweetCount> listOfTweets = new ArrayList<TweetCount>();
 		for (CSVRecord record : allTweets) {
 			boolean addToList = true;
-			if(record.isSet(8)) {
+			if(record.isSet(8)) { // is there something in field 8 
 				numTweets++;
 				String userName = record.get(8);
 				TweetCount tweet = new TweetCount(userName, 1);
-				if (listOfTweets.isEmpty()) {
+				if (listOfTweets.isEmpty()) { // if list is empty add to list 
 					listOfTweets.add(tweet);
 				} else {
-					for (TweetCount tc : listOfTweets) {
-						if (tc.getScreenName().equals(userName)) {
-							tc.increment();
+					for (TweetCount tc : listOfTweets) { // check through the list and see if tc is in the list 
+						if (tc.getScreenName().equals(userName)) { // if in list increment 
+							tc.increment(); 
 							addToList = false;
-							break;
+							break; // no need to keep going through the loop we have already found what we are looking for 
 						}
 					}
-					if (addToList == true) {
+					if (addToList == true) { // tc wasn't in list add to list 
 						listOfTweets.add(tweet);	
 					}
 				}		
 			}
 		}
 		
-		Collection<TweetCount> tweets = listOfTweets ;
+		Collection<TweetCount> tweets = listOfTweets ; //collection of the list throw it into the PriorityQueue
 		
 		
 		
-		PriorityQueue<TweetCount> pQ = pQueue(tweets , n); 		
+		PriorityQueue<TweetCount> pQ = pQueue(tweets); 		
 		
 		stopwatch.stop();
 		double time = stopwatch.getElapsedSeconds(); 
 		
+		/**
+		 * print output of the top users by tweet count
+		 */
 		print (pQ , "an" , "ArrayList", time, numTweets , n) ; 
 	 
 		
@@ -187,12 +199,11 @@ public class Program {
 	
 	/**
 	 * takes a priority queue and some parameters for printing the output 
-	 * then puts the queue into a stack to print it in reverse
-	 * then prints the stack 
-	 * @param leaderBoard 
-	 * @param prefix 
-	 * @param type
-	 * @param time
+	 * removes the top n from the priority queue and prints the data 
+	 * @param PriorityQueue<TweetCount> pQ 
+	 * @param prefix (a , an) 
+	 * @param type (ArrayList, TreeMap, HashMap) 
+	 * @param time 
 	 * @param n
 	 */
 	public static void print(PriorityQueue<TweetCount> pQ, String prefix, 
@@ -202,13 +213,18 @@ public class Program {
 				prefix ,  type , time); 
 		System.out.printf("The %d users by number of tweets are: \n" , n); 
 	
-		for(int i = 0 ; i < n ; i ++ ) {
+		for(int i = 0 ; i < n ; i ++ ) { // go through the PriorityQueue and remove the n highest priority members and print
 			TweetCount temp = pQ.remove(); 
 			System.out.println(temp.getScreenName() + " had " + temp.getCount() + " tweets"); 
 		}
 	}
 	
-	public static PriorityQueue<TweetCount> pQueue(Collection<TweetCount> col, int n) {
+	/**
+	 * Accepts a collection and implements them into a PriorityQueue 
+	 * @param col
+	 * @return returns a Priority Queue 
+	 */
+	public static PriorityQueue<TweetCount> pQueue(Collection<TweetCount> col) {
 		PriorityQueue<TweetCount> pQ = new PriorityQueue<>() ; 
 		for (TweetCount tweet : col) {
 			pQ.add(tweet); 
@@ -222,9 +238,14 @@ public class Program {
 	 * TODO: Add your code for tree maps here. You will do best to create many
 	 * methods to organize your work and experiments.
 	 * 
-	 * @param allTweets the Iterable object that lets you iterate over all of the
-	 *                  data
-	 * @param n         the number of users to report the top N for
+	 * Takes iterates through the CSVRecord and puts them in a tree map that is sorted by 
+	 * the natural order of the String ScreenName of the TweetCount object using the 
+	 * comparable interface in TweetCount 
+	 * 
+	 * Takes the TreeMap puts it into a PriorityQueue and then prints the top n users by count 
+	 * 
+	 * @param allTweets the Iterable object that lets you iterate over all of the data
+	 * @param n the number of users to report the top N for
 	 */
 	public static void findTopUsingTreeMap(Iterable<CSVRecord> allTweets, int n) {
 		
@@ -232,29 +253,38 @@ public class Program {
 		
 		stopwatch.reset() ; 
 		stopwatch.start(); 
+		
+		//TreeMap sorted by string and mapped to a TweetCount object 
 		TreeMap<String, TweetCount> map = new TreeMap<String, TweetCount>() ;
-		//PriorityQueue<TweetCount> pQueue = new PriorityQueue<TweetCount>() ; 
+		
 		
 		int numTweets = 0; 
-		for (CSVRecord  record : allTweets) {
+		/**
+		 * Options: 
+		 * 	1: if map is empty add to map sorted by screenName 
+		 * 	2: if map is not empty 
+		 * 		2a: check if map contains userName then increment the Count of the object 
+		 * 		2b: if the map doesn't have the TweetCount then then create TweetCount and put it in the map 
+		 * 
+		 * 
+		 */
+		for (CSVRecord  record : allTweets) { // for each record add to the TreeMap
 			if (record.isSet(8)) {
 				String userName = record.get(8); 
 				
-				if (map.isEmpty()) {
+				if (map.isEmpty()) { // is empty
 					TweetCount tweet = new TweetCount(userName , 1); 
 					map.put(userName, tweet);
-					
-					//pQueue.add(tweet); 
 				}
 				else {
 					TweetCount check = map.get(userName); 
-					if (check == null) {
-						TweetCount tweet = new TweetCount(userName, 1);
-						map.put(userName, tweet); 
+					if (check == null) { 
+						TweetCount tweet = new TweetCount(userName, 1); //Create TweetCount
+						map.put(userName, tweet);  //add the new TweetCount to the map 
 						
 					}
 					else {
-						check.increment();
+						check.increment(); 
 					}
 				}
 				
@@ -264,22 +294,14 @@ public class Program {
 			}
 			
 		}
-
-		 
-			/** 
-			 * Getting the top tweets using a priority queue 
-			 */
-			
-
-
-			
-		PriorityQueue<TweetCount> pQueue = pQueue(map.values() , n) ; 
+		
+		PriorityQueue<TweetCount> pQueue = pQueue(map.values()) ;  // take the map values and put it into a PriorityQueue
 			
 			
 
 		double pQTime = stopwatch.getElapsedMilliseconds() ; 
 			
-		print(pQueue , "a" , "TreeMap" , pQTime , numTweets , n) ; 
+		print(pQueue , "a" , "TreeMap" , pQTime , numTweets , n) ; //Print the PriorityQueue 
 			
 		timeTreeMap.stop() ;
 
@@ -288,15 +310,20 @@ public class Program {
 		/**
 		 * ******GETTING TOP USERS USING MY ALGORITHM*******
 		 * 
-		 * this will create a cascading tree so if the leaderboard tree 
-		 * already has a value then it will create a tree within a tree that will take more users in it then you can have 
-		 * infinite users with the same value 
+		 * This was my idea of how to have a fast leaderboard type setup but i couldn't beat the speed of a priority queue 
+		 * it would mathc the speed for long runs with a large leaderboard and lots of data but it had a little too much 
+		 * overhead for short runs with a small set of data 
+		 * 
+		 * the premise : 
+		 * it takes a tree map sorted by Strings where each node is a TweetCount object 
+		 * Creates a TreeMap sorted by Integer(TweetCount.count()) and each node is a TreeMap<String , TweetCount> 
+		 * This way I can have all the TweetCounts with the same count value in the appropriate node 
+		 * 
+		 * I think there is still a lot of merit to this design even if for this particular application it is not as fast
+		 * Also being able to re manipulate a tree map to sort by something else is an important skill to have
+		 * 
 		 */
-		
-	
 		/*
-
-
 		TreeMap<Integer, TreeMap<String, TweetCount>> leaderBoard = new TreeMap<Integer, TreeMap<String , TweetCount>>() ; 
 		
 		for (TweetCount key : map.values()) {
@@ -313,10 +340,6 @@ public class Program {
 				leaderBoard.get(key.getCount()).put(key.getScreenName() , key); 
 			}
 		}
-		
- 
-		
-		
 		
 		int counter = 0; 
 		
@@ -347,26 +370,26 @@ public class Program {
 	 * TODO: Add your code for hash maps here. You will do best to create many
 	 * methods to organize your work and experiments.
 	 * 
-	 * @param allTweets the Iterable object that lets you iterate over all of the
-	 *                  data
-	 * @param n         the number of users to report the top N for
+	 * 
+	 * This method finds the top most active users using a HashMap. 
+	 * I was looking for a way to forego the priority queue and use just the HashMap methods 
+	 * because HashMaps work in O(1) ish time so it finishes the first part but the second part holds it up 
+	 * for relatively a long time but to sort the whole thing only takes about 3 seconds for 1.7million tweets 
+	 * and listing the top 400,000 users by TweetCount 
+	 * 
+	 * @param allTweets the Iterable object that lets you iterate over all of the data
+	 * @param n the number of users to report the top N for
 	 */
 	public static void findTopUsingHashMap(Iterable<CSVRecord> allTweets, int n) {
 		/**
-		 * get name
-		 * if contains key (name) 
-		 * 
-		 *  Method1: 
-		 *  	increment 
-		 *  	remap to new value 
-		 * 
-		 * Method2: 
-		 * 		remap to new value; 
-		 * 		no need to increment; 
-		 * 
-		 * print key names and values; 
-		 * 
-		 */
+		 * Options: 
+		 * 	1: if map is empty add to map sorted by screenName 
+		 * 	2: if map is not empty 
+		 * 		2a: check if map contains userName then increment the Count of the object 
+		 * 		2b: if the map doesn't have the TweetCount then then create TweetCount and put it in the map 
+		 *
+		*/ 
+
 		
 		timeHashMap.start() ; 
 		
@@ -386,7 +409,7 @@ public class Program {
 			}
 		}
 		
-		PriorityQueue<TweetCount> pQ = pQueue(map.values() , n); 
+		PriorityQueue<TweetCount> pQ = pQueue(map.values()); 
 		stopwatch.stop(); 
 		double time = stopwatch.getElapsedMilliseconds() ; 
 		print (pQ , "a" ,  "HashMap"  , time , numTweets , n); 
