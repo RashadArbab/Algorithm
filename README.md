@@ -5,9 +5,11 @@ This is a program that takes CSV files with tweets, and then it counts how many 
 
 ### DataStructures: 
 
-ArrayLists
-TreeMaps (RedBlack BST) 
-HashMaps 
+-ArrayLists 
+
+-TreeMaps (RedBlack BST) 
+
+-HashMaps  
 
 ### Conclusion: 
 
