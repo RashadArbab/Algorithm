@@ -48,7 +48,7 @@ public class Program {
 	 * when READ_INTO_MEMORAY is true
 	 */
 	// TODO: adjust this constant as necessary
-	public static final int MAX_TWEETS = Integer.MAX_VALUE;
+	public static final int MAX_TWEETS = 1024000;
 
 	/**
 	 * This constant represents the folder that contains the data. You should not
@@ -61,9 +61,9 @@ public class Program {
 	 * time your code.
 	 */
 	public static Stopwatch stopwatch = new Stopwatch();
-	
 	public static Stopwatch timeTreeMap = new Stopwatch() ; 
-	public static Stopwatch timeHashMap = new Stopwatch() ; 
+	public static Stopwatch timeHashMap = new Stopwatch() ;
+	public static Stopwatch timeList = new Stopwatch() ; 
 	
 	public static int capacity = 0 ; 
 	/**
@@ -74,8 +74,9 @@ public class Program {
 	 * @param args the arguments to this main program provided on the command line
 	 *             (none)
 	 * @throws IOException when the data files cannot be read properly
+	 * @throws InterruptedException 
 	 */
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException, InterruptedException {
 		/*
 		 * We have already setup all the data to make the rest of your assignment easier
 		 * for you.
@@ -113,18 +114,29 @@ public class Program {
 		
 		// TODO: you can comment/uncomment to test each map
 		// implementation.
-	
+
+			
+			System.out.println("ArrayList: " ); 
+			System.out.println("");
+			//findTopUsingArrayList(allTweets, 20);
+			Thread.sleep(1000);
+			System.out.println("");
+			System.out.println("TreeMap" ); 
+			System.out.println(""); 
+	        findTopUsingTreeMap(allTweets, 20);
+	        Thread.sleep(1000);
+	        System.out.println(""); 
+	        System.out.println("HashMap" ); 
+	        findTopUsingHashMap(allTweets, 20);
+	        System.out.println(""); 
+	        
+	        
+
 		
-		//findTopUsingArrayList(allTweets, 20);
-		System.out.println("");
-		System.out.println("TreeMap"); 
-		System.out.println(""); 
-        findTopUsingTreeMap(allTweets, 200000);
-        findTopUsingHashMap(allTweets, 400000);
         
-        
-        System.out.println("Time TreeMap: " + timeTreeMap.getElapsedMilliseconds()); 
-        System.out.println("Time HashMap: " + timeHashMap.getElapsedMilliseconds());
+        System.out.println("Time List: " + timeList.getElapsedSeconds()) ;
+        System.out.println("Time TreeMap: " + timeTreeMap.getElapsedSeconds()); 
+        System.out.println("Time HashMap: " + timeHashMap.getElapsedSeconds());
        
 	}
 
@@ -145,6 +157,7 @@ public class Program {
 		// on allTweets), so you'll NEED to modify this code.
 		//Stopwatch stopwatch = new Stopwatch(); 
 		stopwatch.start() ; 
+		timeList.start(); 
 		int numTweets = 0;
 		/**
 		 * here is the new arraylist and you add each record to the list
@@ -180,12 +193,10 @@ public class Program {
 			}
 		}
 		
-		Collection<TweetCount> tweets = listOfTweets ; //collection of the list throw it into the PriorityQueue
 		
 		
-		
-		PriorityQueue<TweetCount> pQ = pQueue(tweets); 		
-		
+		PriorityQueue<TweetCount> pQ = pQueue(listOfTweets); 		
+		timeList.stop(); 
 		stopwatch.stop();
 		double time = stopwatch.getElapsedSeconds(); 
 		
@@ -298,12 +309,12 @@ public class Program {
 		PriorityQueue<TweetCount> pQueue = pQueue(map.values()) ;  // take the map values and put it into a PriorityQueue
 			
 			
-
-		double pQTime = stopwatch.getElapsedMilliseconds() ; 
+		timeTreeMap.stop() ;
+		double pQTime = stopwatch.getElapsedSeconds() ; 
 			
 		print(pQueue , "a" , "TreeMap" , pQTime , numTweets , n) ; //Print the PriorityQueue 
 			
-		timeTreeMap.stop() ;
+
 
 
 		
@@ -328,7 +339,7 @@ public class Program {
 		
 		for (TweetCount key : map.values()) {
 			int value = key.getCount() ;
-			
+			eets with a HashMap took 0.730283 seconds. 
 			if (!leaderBoard.containsKey(value)) {
 				TreeMap<String, TweetCount> tree = new TreeMap<String, TweetCount>() ; 
 				tree.put(key.getScreenName(), key); 
@@ -392,7 +403,8 @@ public class Program {
 
 		
 		timeHashMap.start() ; 
-		
+		stopwatch.reset();
+		stopwatch.start() ; 
 		int numTweets = 0 ; 
 		HashMap<String , TweetCount> map = new HashMap<>() ; 
 		for (CSVRecord record : allTweets) {
@@ -411,10 +423,11 @@ public class Program {
 		
 		PriorityQueue<TweetCount> pQ = pQueue(map.values()); 
 		stopwatch.stop(); 
-		double time = stopwatch.getElapsedMilliseconds() ; 
+		double time = stopwatch.getElapsedSeconds() ; 
+		timeHashMap.stop() ; 
 		print (pQ , "a" ,  "HashMap"  , time , numTweets , n); 
 		
-		timeHashMap.stop() ; 
+		
 		
 		
 	}

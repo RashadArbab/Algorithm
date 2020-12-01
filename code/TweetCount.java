@@ -90,7 +90,6 @@ public class TweetCount implements Comparable<TweetCount> {
     @Override 
     public int compareTo(TweetCount other) {
 		return  other.getCount() - this.getCount() ; 
-		
 	}
 
     /**
