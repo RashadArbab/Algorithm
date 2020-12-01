@@ -17,4 +17,4 @@ This is a program that takes CSV files with tweets, and then it counts how many 
 
 -TreeMaps take the mimimum amount of memory and are fast enough for most use cases and run on about O(log(n) time 
 
--ArrayLists are versatile and are good for storing small amounts of data because they are slow and take O(n^2) time; 
+-ArrayLists are versatile and are good for storing small amounts of data because they are slow and take O(n^2) time 
